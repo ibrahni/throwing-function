@@ -1,0 +1,16 @@
+apply plugin: 'java'
+
+dependencies {
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.0.1'
+    testCompile 'org.assertj:assertj-core:3.8.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.10.2'
+}
