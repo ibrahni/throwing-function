@@ -52,4 +52,17 @@ class ThrowingUnaryOperatorTest {
             ThrowingUnaryOperator.unchecked(null).apply(42);
         }).isInstanceOf(NullPointerException.class);
     }
+
+    @Test
+    void shouldNotWrapInRuntimeExWhenUsingSneaked() {
+        class ToBeThrown extends Exception {}
+
+        class ForTest {
+            Object throwsCheckedException(Object parameter) throws Exception {
+                throw new ToBeThrown();
+            }
+        }
+        assertThatThrownBy(() -> ThrowingUnaryOperator.sneaked(new ForTest()::throwsCheckedException).apply(null))
+                .isInstanceOf(ToBeThrown.class);
+    }
 }

@@ -39,12 +39,16 @@ public interface ThrowingFunction<T, R, E extends Exception> {
      * @return a Function that returns the result of the given function as an Optional instance.
      * In case of a failure, empty Optional is returned
      */
-    static <T, R, E extends Exception> Function<T, Optional<R>> lifted(final ThrowingFunction<T, R, ? extends E> f) {
+    static <T, R> Function<T, Optional<R>> lifted(final ThrowingFunction<T, R, ?> f) {
         return requireNonNull(f).lift();
     }
 
-    static <T, R, E extends Exception> Function<T, R> unchecked(final ThrowingFunction<T, R, ? extends E> f) {
+    static <T, R> Function<T, R> unchecked(final ThrowingFunction<T, R, ?> f) {
         return requireNonNull(f).uncheck();
+    }
+
+    static <T, R> Function<T, R> sneaked(final ThrowingFunction<T, R, ?> f) {
+        return requireNonNull(f).sneaky();
     }
 
     default <V> ThrowingFunction<V, R, E> compose(final ThrowingFunction<? super V, ? extends T, ? extends E> before) {
@@ -71,6 +75,16 @@ public interface ThrowingFunction<T, R, E extends Exception> {
                 return apply(t);
             } catch (final Exception e) {
                 throw new WrappedException(e);
+            }
+        };
+    }
+
+    default Function<T, R> sneaky() {
+        return t -> {
+            try {
+                return apply(t);
+            } catch (final Exception e) {
+                return SneakyThrowUtil.sneakyThrow(e);
             }
         };
     }

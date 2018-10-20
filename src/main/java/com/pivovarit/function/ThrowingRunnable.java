@@ -31,8 +31,12 @@ import static java.util.Objects.requireNonNull;
 public interface ThrowingRunnable<E extends Exception> {
     void run() throws E;
 
-    static <E extends Exception> Runnable unchecked(ThrowingRunnable<E> runnable) {
+    static Runnable unchecked(ThrowingRunnable<?> runnable) {
         return requireNonNull(runnable).unchecked();
+    }
+
+    static Runnable sneaked(ThrowingRunnable<?> runnable) {
+        return requireNonNull(runnable).sneaky();
     }
 
     /**
@@ -44,6 +48,16 @@ public interface ThrowingRunnable<E extends Exception> {
                 run();
             } catch (final Exception e) {
                 throw new WrappedException(e);
+            }
+        };
+    }
+
+    default Runnable sneaky() {
+        return () -> {
+            try {
+                run();
+            } catch (final Exception e) {
+                SneakyThrowUtil.sneakyThrow(e);
             }
         };
     }

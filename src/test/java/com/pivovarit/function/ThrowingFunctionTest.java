@@ -7,10 +7,10 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static com.pivovarit.function.TestCommons.givenThrowingFunction;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static com.pivovarit.function.TestCommons.givenThrowingFunction;
 
 class ThrowingFunctionTest {
 
@@ -115,5 +115,18 @@ class ThrowingFunctionTest {
 
         //then
         assertThat(result).isZero();
+    }
+
+    @Test
+    void shouldNotWrapInRuntimeExWhenUsingSneaked() {
+        class ToBeThrown extends Exception {}
+
+        class ForTest {
+            Object throwsCheckedException(Object parameter) throws Exception {
+                throw new ToBeThrown();
+            }
+        }
+        assertThatThrownBy(() -> ThrowingFunction.sneaked(new ForTest()::throwsCheckedException).apply(null))
+            .isInstanceOf(ToBeThrown.class);
     }
 }

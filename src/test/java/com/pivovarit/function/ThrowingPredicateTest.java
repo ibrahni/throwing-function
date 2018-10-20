@@ -123,4 +123,17 @@ class ThrowingPredicateTest {
           .hasMessage(cause.getMessage())
           .hasCause(cause);
     }
+
+    @Test
+    void shouldNotWrapInRuntimeExWhenUsingSneaked() {
+        class ToBeThrown extends Exception {}
+
+        class ForTest {
+            boolean throwsCheckedException(Object parameter) throws Exception {
+                throw new ToBeThrown();
+            }
+        }
+        assertThatThrownBy(() -> ThrowingPredicate.sneaked(new ForTest()::throwsCheckedException).test(null))
+                .isInstanceOf(ToBeThrown.class);
+    }
 }

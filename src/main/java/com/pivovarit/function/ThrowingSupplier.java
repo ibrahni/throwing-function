@@ -41,12 +41,16 @@ public interface ThrowingSupplier<T, E extends Exception> {
         return arg -> get();
     }
 
-    static <T, E extends Exception> Supplier<T> unchecked(ThrowingSupplier<T, E> supplier) {
+    static <T> Supplier<T> unchecked(ThrowingSupplier<T, ?> supplier) {
         return requireNonNull(supplier).uncheck();
     }
 
-    static <T, E extends Exception> Supplier<Optional<T>> lifted(ThrowingSupplier<T, E> supplier) {
+    static <T> Supplier<Optional<T>> lifted(ThrowingSupplier<T, ?> supplier) {
         return requireNonNull(supplier).lift();
+    }
+
+    static <T> Supplier<T> sneaked(ThrowingSupplier<T, ?> supplier) {
+        return requireNonNull(supplier).sneak();
     }
 
     /**
@@ -72,6 +76,16 @@ public interface ThrowingSupplier<T, E extends Exception> {
                 return Optional.of(get());
             } catch (Exception e) {
                 return Optional.empty();
+            }
+        };
+    }
+
+    default Supplier<T> sneak() {
+        return () -> {
+            try {
+                return get();
+            } catch (final Exception e) {
+                return SneakyThrowUtil.sneakyThrow(e);
             }
         };
     }

@@ -110,4 +110,17 @@ class ThrowingSupplierTest {
         // then
         assertThat(result).isPresent();
     }
+
+    @Test
+    void shouldNotWrapInRuntimeExWhenUsingSneaked() {
+        class ToBeThrown extends Exception {}
+
+        class ForTest {
+            Object throwsCheckedException() throws Exception {
+                throw new ToBeThrown();
+            }
+        }
+        assertThatThrownBy(() -> ThrowingSupplier.sneaked(new ForTest()::throwsCheckedException).get())
+                .isInstanceOf(ToBeThrown.class);
+    }
 }

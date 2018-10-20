@@ -34,20 +34,27 @@ import static java.util.Objects.requireNonNull;
 public interface ThrowingPredicate<T, E extends Exception> {
     boolean test(T t) throws E;
 
-    static <T, E extends Exception> Predicate<T> unchecked(ThrowingPredicate<T, E> predicate) {
+    static <T> Predicate<T> unchecked(ThrowingPredicate<T, ?> predicate) {
         return requireNonNull(predicate).uncheck();
     }
 
-    default ThrowingPredicate<T, E> and(final ThrowingPredicate<? super T, E> other) {
-        return t -> test(t) && requireNonNull(other).test(t);
+    static <T> Predicate<T> sneaked(ThrowingPredicate<T, ?> predicate) {
+        return requireNonNull(predicate).sneak();
     }
 
-    default ThrowingPredicate<T, E> or(final ThrowingPredicate<? super T, E> other) {
-        return t -> test(t) || requireNonNull(other).test(t);
+    default ThrowingPredicate<T, E> and(final ThrowingPredicate<? super T, ? extends E> other) {
+        requireNonNull(other);
+        return t -> test(t) && other.test(t);
     }
 
-    default ThrowingPredicate<T, E> xor(final ThrowingPredicate<? super T, E> other) {
-        return t -> test(t) ^ requireNonNull(other).test(t);
+    default ThrowingPredicate<T, E> or(final ThrowingPredicate<? super T, ? extends E> other) {
+        requireNonNull(other);
+        return t -> test(t) || other.test(t);
+    }
+
+    default ThrowingPredicate<T, E> xor(final ThrowingPredicate<? super T, ? extends E> other) {
+        requireNonNull(other);
+        return t -> test(t) ^ other.test(t);
     }
 
     default ThrowingPredicate<T, E> negate() {
@@ -70,6 +77,16 @@ public interface ThrowingPredicate<T, E extends Exception> {
                 return test(t);
             } catch (final Exception e) {
                 throw new WrappedException(e);
+            }
+        };
+    }
+
+    default Predicate<T> sneak() {
+        return t -> {
+            try {
+                return test(t);
+            } catch (final Exception e) {
+                return SneakyThrowUtil.sneakyThrow(e);
             }
         };
     }

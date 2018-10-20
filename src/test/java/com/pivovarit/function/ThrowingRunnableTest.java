@@ -59,4 +59,17 @@ class ThrowingRunnableTest {
           .hasMessage(cause.getMessage())
           .hasCause(cause);
     }
+
+    @Test
+    void shouldNotWrapInRuntimeExWhenUsingSneaked() {
+        class ToBeThrown extends Exception {}
+
+        class ForTest {
+            void throwsCheckedException() throws Exception {
+                throw new ToBeThrown();
+            }
+        }
+        assertThatThrownBy(() -> ThrowingRunnable.sneaked(new ForTest()::throwsCheckedException).run())
+                .isInstanceOf(ToBeThrown.class);
+    }
 }
